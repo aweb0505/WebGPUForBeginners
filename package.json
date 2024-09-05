@@ -5,7 +5,7 @@
   "scripts": {
     "start": "npm run install-missing-dependencies && npm run build && npm run serve",
     "install-missing-dependencies": "npm i",
-    "build": "webpack --confiog webpack.config.js",
+    "build": "webpack --config webpack.config.js",
     "serve": "http-server"
   },
   "keywords": [],

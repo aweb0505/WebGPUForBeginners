@@ -1,5 +1,6 @@
 const path = require("path");
 module.exports = {
+    mode: "development",
     context: __dirname,
     entry: "./src/main.ts",
     output: {
@@ -15,6 +16,12 @@ module.exports = {
             exclude: /node_modules/,
             use: {
                 loader: "ts-loader"
+            }
+        },
+        {
+            test: /\.wgsl$/,
+            use: {
+                loader: "ts-shader-loader"
             }
         }
         ]

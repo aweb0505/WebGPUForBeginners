@@ -1,7 +1,7 @@
-import { Renderer } from "./renderer";
+import { App } from "./control/app";
 
 const canvas : HTMLCanvasElement = <HTMLCanvasElement> document.getElementById("gfx-main");
 
-const renderer = new Renderer(canvas);
+const app = new App(canvas);
 
-renderer.Initialize();
+app.initialize().then(() => app.run());

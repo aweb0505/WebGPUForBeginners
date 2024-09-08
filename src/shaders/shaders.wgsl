@@ -4,22 +4,24 @@ struct TransformData {
     projection: mat4x4<f32>
 };
 @binding(0) @group(0) var<uniform> transformUBO: TransformData; // UBO = uniform buffer object
+@binding(1) @group(0) var myTexture: texture_2d<f32>;
+@binding(2) @group(0) var mySampler: sampler;
 
 struct FragmentOutput {
     @builtin(position) Position: vec4<f32>,
-    @location(0) Color: vec4<f32>
+    @location(0) TexCoord: vec2<f32>
 };
 
 @vertex
-fn vs_main(@location(0) vertexPositions: vec3<f32>, @location(1) vertexColors: vec3<f32>) -> FragmentOutput {
+fn vs_main(@location(0) vertexPositions: vec3<f32>, @location(1) vertexTexCoord: vec2<f32>) -> FragmentOutput {
     var output: FragmentOutput;
     output.Position = transformUBO.projection * transformUBO.view * transformUBO.model * vec4<f32>(vertexPositions, 1.0);
-    output.Color = vec4<f32>(vertexColors, 1.0);
+    output.TexCoord = vertexTexCoord;
 
     return output;
 }
 
 @fragment
-fn fs_main(@location(0) Color: vec4<f32>) -> @location(0) vec4<f32> {
-    return Color;
+fn fs_main(@location(0) TexCoord: vec2<f32>) -> @location(0) vec4<f32> {
+    return textureSample(myTexture, mySampler, TexCoord);
 }

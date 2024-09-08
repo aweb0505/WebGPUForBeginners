@@ -1,6 +1,7 @@
 import shader from "./shaders/shaders.wgsl";
 import { TriangleMesh } from "./triangle_mesh";
 import { mat4 } from "gl-matrix";
+import { Material } from "./material";
 
 export class Renderer {
 
@@ -19,6 +20,8 @@ export class Renderer {
 
     // Assets
     triangleMesh!: TriangleMesh;
+    material!: Material;
+
     t: number;
 
 
@@ -31,7 +34,7 @@ export class Renderer {
 
         await this.setupDevice();
 
-        this.createAssets();
+        await this.createAssets();
     
         await this.makePipeline();
     
@@ -68,8 +71,18 @@ export class Renderer {
             entries: [
                 {
                     binding: 0,
-                    visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+                    visibility: GPUShaderStage.VERTEX,
                     buffer: {}
+                },
+                {
+                    binding: 1,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    texture: {}
+                },
+                {
+                    binding: 2,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    sampler: {}
                 }
             ],
         });
@@ -82,6 +95,14 @@ export class Renderer {
                     resource: {
                         buffer: this.uniformBuffer
                     }
+                },
+                {
+                    binding: 1,
+                    resource: this.material.view
+                },
+                {
+                    binding: 2,
+                    resource: this.material.sampler
                 }
             ]
         });
@@ -118,13 +139,16 @@ export class Renderer {
 
     }
 
-    createAssets() {
+    async createAssets() {
         this.triangleMesh = new TriangleMesh(this.device);
+        this.material = new Material();
+
+        await this.material.initialize(this.device, "dist/img/jacobJones.PNG");
     }
 
     render = () => {
 
-        this.t += 0.02;
+        this.t += 0.01;
 
         if (this.t > 2.0 * Math.PI) {
             this.t -= 2.0 * Math.PI;

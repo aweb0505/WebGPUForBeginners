@@ -1,21 +1,35 @@
 import { Camera } from "./camera";
 import { Triangle } from "./triangle";
-import { vec3 } from "gl-matrix";
+import { vec3, mat4 } from "gl-matrix";
 
 export class Scene {
 
     triangles: Triangle[];
     player: Camera;
+    object_data: Float32Array;
+    triangle_count: number = 0;
 
     constructor() {
 
         this.triangles = [];
-        this.triangles.push(
-            new Triangle(
-                [2, 0, 0],
-                0
-            )
-        );
+        this.object_data = new Float32Array(16 * 1024);
+
+        var i: number = 0;
+        for (var y = -5; y < 5; y++) {
+            this.triangles.push(
+                new Triangle(
+                    [2, y, 0],
+                    0
+                )
+            );
+
+            var blank_matrix = mat4.create();
+            for (var j = 0; j < 16; j++) {
+                this.object_data[16 * i + j] = <number>blank_matrix.at(j);
+            }
+            i++;
+            this.triangle_count++;
+        }
 
         this.player = new Camera (
             [-2, 0, 0.5],
@@ -25,8 +39,18 @@ export class Scene {
     }
 
     update() {
+
+        var i: number = 0;
+
         this.triangles.forEach(
-            (triangle) => triangle.update()
+            (triangle) => {
+                triangle.update();
+                var model = triangle.get_model();
+                for (var j = 0; j < 16; j++) {
+                    this.object_data[16 * i + j] = <number>model.at(j);
+                }
+                i++;
+            }
         );
 
         this.player.update();
@@ -60,8 +84,8 @@ export class Scene {
         return this.player;
     }
 
-    get_triangles(): Triangle[] {
-        return this.triangles;
+    get_triangles(): Float32Array {
+        return this.object_data;
     }
 
 }

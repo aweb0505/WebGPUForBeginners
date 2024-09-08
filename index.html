@@ -6,9 +6,11 @@
     <title>Test</title>
 </head>
 <body>
-    <div id="container">
-        <h2>Editor Window</h2>
-        <canvas id="gfx-main" width="800", height="600"></canvas>
+    <div style="position: relative; top: 2em;">
+        <div id="container" style="position: relative;">
+            <h2 style="position: absolute; top: -2em; left: 50%; transform: translateX(-50%); text-align: center;">Editor Window</h2>
+            <canvas id="gfx-main" width="1920" height="1080" style="display: block; margin: 0 auto;"></canvas>
+        </div>
     </div>
     <script src="dist/main.js"></script>
 </body>

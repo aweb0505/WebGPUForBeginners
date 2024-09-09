@@ -96,7 +96,7 @@ export class App {
             }
         }
 
-        this.key_code_label!.innerText = "Key held: " + event.code + ": Control key held?: " + this.ctrl_key_held;
+        this.key_code_label!.innerText = "Key held: " + event.code + "\nControl key held?: " + this.ctrl_key_held;
     }
 
     handle_key_release(event: JQuery.KeyUpEvent) {
@@ -121,7 +121,7 @@ export class App {
             this.right_amount = 0;
         }
 
-        this.key_code_label!.innerText = "None";
+        this.key_code_label!.innerText = "Key held: none \n Control key held?: " + this.ctrl_key_held;
     }
 
     handle_mouse_move(event: MouseEvent) {

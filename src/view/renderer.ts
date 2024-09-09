@@ -4,7 +4,7 @@ import { QuadMesh } from "./quad_mesh";
 import { mat4 } from "gl-matrix";
 import { Material } from "./material";
 import { object_types, RenderData } from "../model/definitions";
-import { Quad } from "../model/quad";
+import { ObjectMesh } from "./object_mesh";
 
 export class Renderer {
 
@@ -18,9 +18,10 @@ export class Renderer {
 
     // Pipeline objects
     uniform_buffer!: GPUBuffer;
-    triangle_bind_group!: GPUBindGroup;
-    quad_bind_group!: GPUBindGroup;
     pipeline!: GPURenderPipeline;
+    frame_group_layout!: GPUBindGroupLayout
+    material_group_layout!: GPUBindGroupLayout
+    frame_bind_group!: GPUBindGroup
 
     // Depth stencil things
     depthStencilState!: GPUDepthStencilState;
@@ -31,8 +32,10 @@ export class Renderer {
     // Assets
     triangle_mesh!: TriangleMesh;
     quad_mesh!: QuadMesh;
+    giant_worm_mesh!: ObjectMesh;
     triangle_material!: Material;
     quad_material!: Material;
+    worm_material!: Material;
     object_buffer!: GPUBuffer;
 
     constructor(canvas: HTMLCanvasElement) {
@@ -43,11 +46,15 @@ export class Renderer {
 
         await this.setup_device();
 
+        await this.make_bind_group_layouts();
+
         await this.create_assets();
 
         await this.make_depth_buffer_resources();
 
         await this.make_pipeline();
+
+        await this.make_bind_group();
 
     }
 
@@ -68,6 +75,61 @@ export class Renderer {
             alphaMode: "opaque"
         });
 
+    }
+
+    async make_bind_group_layouts() {
+        this.frame_group_layout = this.device.createBindGroupLayout({
+            entries: [
+                {
+                    binding: 0,
+                    visibility: GPUShaderStage.VERTEX,
+                    buffer: {}
+                },
+                {
+                    binding: 1,
+                    visibility: GPUShaderStage.VERTEX,
+                    buffer: {
+                        type: "read-only-storage",
+                        hasDynamicOffset: false
+                    }
+                }
+            ],
+        });
+
+        this.material_group_layout = this.device.createBindGroupLayout({
+            entries: [
+                {
+                    binding: 0,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    texture: {}
+                },
+                {
+                    binding: 1,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    sampler: {}
+                }
+            ],
+        });
+    }
+
+    async make_bind_group() {
+        this.frame_bind_group = this.device.createBindGroup({
+            layout: this.frame_group_layout,
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: this.uniform_buffer
+                    }
+                },
+                {
+                    binding: 1,
+                    resource: {
+                        buffer: this.object_buffer
+                    }
+                }
+            ]
+        })
     }
 
     async make_depth_buffer_resources() {
@@ -112,93 +174,8 @@ export class Renderer {
 
     async make_pipeline() {
 
-        this.uniform_buffer = this.device.createBuffer({
-            size: 64 * 2,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
-
-        const bindGroupLayout = this.device.createBindGroupLayout({
-            entries: [
-                {
-                    binding: 0,
-                    visibility: GPUShaderStage.VERTEX,
-                    buffer: {}
-                },
-                {
-                    binding: 1,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    texture: {}
-                },
-                {
-                    binding: 2,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    sampler: {}
-                },
-                {
-                    binding: 3,
-                    visibility: GPUShaderStage.VERTEX,
-                    buffer: {
-                        type: "read-only-storage",
-                        hasDynamicOffset: false
-                    }
-                }
-            ],
-        });
-
-        this.triangle_bind_group = this.device.createBindGroup({
-            layout: bindGroupLayout,
-            entries: [
-                {
-                    binding: 0,
-                    resource: {
-                        buffer: this.uniform_buffer
-                    }
-                },
-                {
-                    binding: 1,
-                    resource: this.triangle_material.view
-                },
-                {
-                    binding: 2,
-                    resource: this.triangle_material.sampler
-                },
-                {
-                    binding: 3,
-                    resource: {
-                        buffer: this.object_buffer
-                    }
-                }
-            ]
-        });
-
-        this.quad_bind_group = this.device.createBindGroup({
-            layout: bindGroupLayout,
-            entries: [
-                {
-                    binding: 0,
-                    resource: {
-                        buffer: this.uniform_buffer
-                    }
-                },
-                {
-                    binding: 1,
-                    resource: this.quad_material.view
-                },
-                {
-                    binding: 2,
-                    resource: this.quad_material.sampler
-                },
-                {
-                    binding: 3,
-                    resource: {
-                        buffer: this.object_buffer
-                    }
-                }
-            ]
-        });
-
-        const pipelineLayout = this.device.createPipelineLayout({
-            bindGroupLayouts: [bindGroupLayout]
+        const pipeline_layout = this.device.createPipelineLayout({
+            bindGroupLayouts: [this.frame_group_layout, this.material_group_layout]
         });
 
         this.pipeline = this.device.createRenderPipeline({
@@ -224,7 +201,7 @@ export class Renderer {
                 topology: "triangle-list"
             },
 
-            layout: pipelineLayout,
+            layout: pipeline_layout,
             depthStencil: this.depthStencilState
         });
 
@@ -237,20 +214,36 @@ export class Renderer {
         this.quad_mesh = new QuadMesh(this.device);
         this.quad_material = new Material();
 
+        this.giant_worm_mesh = new ObjectMesh();
+        this.worm_material = new Material();
+
+        const uniformBufferDescriptor: GPUBufferDescriptor = {
+            size: 64 * 2,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        }
+        this.uniform_buffer = this.device.createBuffer(uniformBufferDescriptor);
+
         const modelBufferDescriptor: GPUBufferDescriptor = {
             size: 64 * 1024,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
         };
         this.object_buffer = this.device.createBuffer(modelBufferDescriptor);
 
-        await this.triangle_material.initialize(this.device, "dist/img/jacobJones.PNG");
-        await this.quad_material.initialize(this.device, "dist/img/floor.png");
+        await this.triangle_material.initialize(this.device, "dist/img/jacobJones.PNG", this.material_group_layout);
+        await this.quad_material.initialize(this.device, "dist/img/floor.png", this.material_group_layout);
+        await this.worm_material.initialize(this.device, "dist/img/Worm_Color.jpg", this.material_group_layout);
+        await this.giant_worm_mesh.initialize(this.device, "dist/models/Giant Worm Creature.obj");
+
     }
 
     async render(renderables: RenderData) {
 
+        if (!this.device || !this.pipeline) {
+            return;
+        }
+
         const projection = mat4.create();
-        mat4.perspective(projection, Math.PI / 4, this.canvas.width / this.canvas.height, 0.1, 10);
+        mat4.perspective(projection, Math.PI / 4, this.canvas.width / this.canvas.height, 0.1, 10000);
 
         const view = renderables.view_transform;
         
@@ -273,19 +266,26 @@ export class Renderer {
             depthStencilAttachment: this.depthStencilAttachment
         });
         renderpass.setPipeline(this.pipeline);
+        renderpass.setBindGroup(0, this.frame_bind_group);
 
         var objects_drawn: number = 0;
         // Triangles
         renderpass.setVertexBuffer(0, this.triangle_mesh.buffer);
-        renderpass.setBindGroup(0, this.triangle_bind_group);
+        renderpass.setBindGroup(1, this.triangle_material.bindGroup);
         renderpass.draw(3, renderables.object_counts[object_types.TRIANGLE], 0, objects_drawn);
         objects_drawn += renderables.object_counts[object_types.TRIANGLE];
 
         // Quads
         renderpass.setVertexBuffer(0, this.quad_mesh.buffer);
-        renderpass.setBindGroup(0, this.quad_bind_group);
+        renderpass.setBindGroup(1, this.quad_material.bindGroup);
         renderpass.draw(6, renderables.object_counts[object_types.QUAD], 0, objects_drawn);
         objects_drawn += renderables.object_counts[object_types.QUAD];
+        
+        // Objects
+        renderpass.setVertexBuffer(0, this.giant_worm_mesh.buffer);
+        renderpass.setBindGroup(1, this.worm_material.bindGroup);
+        renderpass.draw(this.giant_worm_mesh.vertexCount, 1, 0, objects_drawn);
+        objects_drawn += 1
 
         renderpass.end();
 

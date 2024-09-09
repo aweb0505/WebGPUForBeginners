@@ -3,11 +3,13 @@ import { Triangle } from "./triangle";
 import { vec3, mat4 } from "gl-matrix";
 import { Quad } from "./quad";
 import { object_types, RenderData } from "./definitions";
+import { GiantWorm } from "./giant_worm";
 
 export class Scene {
 
     triangles: Triangle[];
     quads: Quad[];
+    giant_worm: GiantWorm;
     player: Camera;
     object_data: Float32Array;
     triangle_count: number = 0;
@@ -21,6 +23,10 @@ export class Scene {
 
         this.make_triangles();
         this.make_quads();
+
+        this.giant_worm = new GiantWorm(
+            [0, 0, 0], [0, 0, 0]
+        );
 
         this.player = new Camera (
             [-2, 0, 0.5],
@@ -94,6 +100,13 @@ export class Scene {
                 i++;
             }
         );
+
+        this.giant_worm.update();
+        var model = this.giant_worm.get_model();
+        for (var j = 0; j < 16; j++) {
+            this.object_data[16 * i + j] = <number>model.at(j);
+        }
+        i++
 
         this.player.update();
     }

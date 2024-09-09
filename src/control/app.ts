@@ -61,6 +61,19 @@ export class App {
         if (event.code == "KeyD") {
             this.right_amount = 0.02;
         }
+        // zoom fast
+        if (event.code == "KeyI") {
+            this.forward_amount = 1.0;
+        }
+        if (event.code == "KeyJ") {
+            this.right_amount = -1.0;
+        }
+        if (event.code == "KeyK") {
+            this.forward_amount = -1.0;
+        }
+        if (event.code == "KeyL") {
+            this.right_amount = 1.0;
+        }
     }
 
     handle_key_release(event: JQuery.KeyUpEvent) {
@@ -76,6 +89,19 @@ export class App {
         if (event.code == "KeyD") {
             this.right_amount = 0;
         }
+        if (event.code == "KeyI") {
+            this.forward_amount = 0;
+        }
+        if (event.code == "KeyJ") {
+            this.right_amount = 0;
+        }
+        if (event.code == "KeyK") {
+            this.forward_amount = 0;
+        }
+        if (event.code == "KeyL") {
+            this.right_amount = 0;
+        }
+        
     }
 
     handle_mouse_move(event: MouseEvent) {

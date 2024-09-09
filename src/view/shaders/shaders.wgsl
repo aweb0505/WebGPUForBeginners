@@ -8,10 +8,13 @@ struct ObjectData {
     model: array<mat4x4<f32>>,
 };
 
+// Frame binding group
 @binding(0) @group(0) var<uniform> transformUBO: TransformData; // UBO = uniform buffer object
-@binding(1) @group(0) var myTexture: texture_2d<f32>;
-@binding(2) @group(0) var mySampler: sampler;
-@binding(3) @group(0) var<storage, read> objects: ObjectData;
+@binding(1) @group(0) var<storage, read> objects: ObjectData;
+
+// Material binding group
+@binding(0) @group(1) var myTexture: texture_2d<f32>;
+@binding(1) @group(1) var mySampler: sampler;
 
 struct FragmentOutput {
     @builtin(position) Position: vec4<f32>,

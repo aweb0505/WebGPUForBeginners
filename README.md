@@ -2,4 +2,10 @@ WebGPU stuff
 
 Just execute "npm start" in the WebGPUForBeginners directory
 
-TODO: Explore the M(odel)V(iew)P(rojection) matrices within the debugger to understand exactly what numbers are doing what
+Overview of project structure:
+
+    Project is developed using the MVC pattern
+
+    app.ts is the entry point
+
+    

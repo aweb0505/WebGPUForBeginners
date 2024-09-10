@@ -56,7 +56,8 @@ export class App {
         this.scene.move_player(this.forward_amount  * this.speed_multiplier, this.right_amount  * this.speed_multiplier);
 
         this.renderer.render(
-            this.scene.get_renderables()
+            this.scene.get_renderables(),
+            this.scene.get_player()
         );
 
         if (running) {

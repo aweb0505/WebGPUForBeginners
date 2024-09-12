@@ -39,9 +39,13 @@ export class Renderer {
     triangle_mesh!: TriangleMesh;
     quad_mesh!: QuadMesh;
     giant_worm_mesh!: ObjectMesh;
+    zammy_monk_mesh!: ObjectMesh;
     triangle_material!: Material;
+
     quad_material!: Material;
     worm_material!: Material;
+    zammy_monk_material!: Material;
+
     cube_map_material!: CubeMapMaterial;
     object_buffer!: GPUBuffer;
     camera_uniform_buffer!: GPUBuffer;
@@ -301,6 +305,9 @@ export class Renderer {
         this.giant_worm_mesh = new ObjectMesh();
         this.worm_material = new Material();
 
+        this.zammy_monk_mesh = new ObjectMesh();
+        this.zammy_monk_material = new Material();
+
         const uniformBufferDescriptor: GPUBufferDescriptor = {
             size: 64 * 2,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
@@ -322,7 +329,9 @@ export class Renderer {
         await this.triangle_material.initialize(this.device, "dist/img/jacobJones.PNG", this.material_group_layout);
         await this.quad_material.initialize(this.device, "dist/img/floor.png", this.material_group_layout);
         await this.worm_material.initialize(this.device, "dist/img/Worm_Color.jpg", this.material_group_layout);
+        await this.zammy_monk_material.initialize(this.device, "dist/img/floor.png", this.material_group_layout);
         await this.giant_worm_mesh.initialize(this.device, "dist/models/Giant Worm Creature.obj");
+        await this.zammy_monk_mesh.initialize(this.device, "dist/models/zamorakian_monk/zammymonk.obj");
 
         // Load cubemap image data
         // const cubemap_file_paths = [
@@ -430,9 +439,17 @@ export class Renderer {
         objects_drawn += renderables.object_counts[object_types.QUAD];
         
         // Objects
-        renderpass.setVertexBuffer(0, this.giant_worm_mesh.buffer);
-        renderpass.setBindGroup(1, this.worm_material.bindGroup);
-        renderpass.draw(this.giant_worm_mesh.vertexCount, 1, 0, objects_drawn);
+
+        // Giant worm
+        // renderpass.setVertexBuffer(0, this.giant_worm_mesh.buffer);
+        // renderpass.setBindGroup(1, this.worm_material.bindGroup);
+        // renderpass.draw(this.giant_worm_mesh.vertexCount, 1, 0, objects_drawn);
+        // objects_drawn += 1
+
+        // Zammy monk
+        renderpass.setVertexBuffer(0, this.zammy_monk_mesh.buffer);
+        renderpass.setBindGroup(1, this.zammy_monk_material.bindGroup);
+        renderpass.draw(this.zammy_monk_mesh.vertexCount, 1, 0, objects_drawn);
         objects_drawn += 1
 
         renderpass.end();

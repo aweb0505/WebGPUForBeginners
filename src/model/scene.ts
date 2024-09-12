@@ -4,12 +4,14 @@ import { vec3, mat4 } from "gl-matrix";
 import { Quad } from "./quad";
 import { object_types, RenderData } from "./definitions";
 import { GiantWorm } from "./giant_worm";
+import { ZamorakianMonk } from "./zamorakian_monk";
 
 export class Scene {
 
     triangles: Triangle[];
     quads: Quad[];
-    giant_worm: GiantWorm;
+    // giant_worm: GiantWorm;
+    zammy_monk: ZamorakianMonk;
     player: Camera;
     object_data: Float32Array;
     triangle_count: number = 0;
@@ -24,8 +26,12 @@ export class Scene {
         this.make_triangles();
         this.make_quads();
 
-        this.giant_worm = new GiantWorm(
-            [0, 0, 0], [0, 0, 0]
+        // this.giant_worm = new GiantWorm(
+        //     [0, 0, 0], [0, 0, 0]
+        // );
+
+        this.zammy_monk = new ZamorakianMonk(
+            [0, 0, 0], [90, 0, 0], [.01, .01, .01]
         );
 
         this.player = new Camera (
@@ -101,8 +107,15 @@ export class Scene {
             }
         );
 
-        this.giant_worm.update();
-        var model = this.giant_worm.get_model();
+        // this.giant_worm.update();
+        // var model = this.giant_worm.get_model();
+        // for (var j = 0; j < 16; j++) {
+        //     this.object_data[16 * i + j] = <number>model.at(j);
+        // }
+        // i++
+
+        this.zammy_monk.update();
+        var model = this.zammy_monk.get_model();
         for (var j = 0; j < 16; j++) {
             this.object_data[16 * i + j] = <number>model.at(j);
         }
